@@ -1469,7 +1469,7 @@ function execute (action) {
 
     // Reasons to not execute
     if (action !== 'setup' && !chrome.cast.isAvailable) {
-        return callback && callback(new chrome.cast.Error(chrome.cast.ErrorCode.API_NOT_INITIALIZED), 'The API is not initialized.', {});
+        return callback && callback(chrome.cast.ErrorCode.API_NOT_INITIALIZED);
     }
     if (action !== 'setup' && action !== 'initialize' && !_initialized) {
         throw new Error('Not initialized. Must call chrome.cast.initialize first.');
@@ -1494,12 +1494,16 @@ function handleError (err, callback) {
         desc = desc || 'A channel to the receiver is not available.';
     } else if (err === chrome.cast.ErrorCode.SESSION_ERROR) {
         desc = desc || 'A session could not be created, or a session was invalid.';
+    } else if (err === chrome.cast.ErrorCode.API_NOT_INITIALIZED) {
+        desc = desc || 'The API is not initialized.';
     } else {
         desc = err + ' ' + desc;
         err = chrome.cast.ErrorCode.UNKNOWN;
     }
 
-    var error = new chrome.cast.Error(err, desc, {});
+    var error = new chrome.cast.Error(err, desc, {
+        stack: new Error(err + ' - ' + desc).stack,
+    });
     if (callback) {
         callback(error);
     }
