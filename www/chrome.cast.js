@@ -520,11 +520,11 @@ chrome.cast = {
          * the existing trackIds the whole request will fail and no status will change. It is acceptable to
          * change the text track style even if no text track is currently active.
          * @param {number[]}                            opt_activeTrackIds Optional.
-         * @param {chrome.cast.media.TextTrackStyle}    opt_textTrackSytle Optional.
+         * @param {chrome.cast.media.TextTrackStyle}    opt_textTrackStyle Optional.
          **/
-        EditTracksInfoRequest: function EditTracksInfoRequest (opt_activeTrackIds, opt_textTrackSytle) {
+        EditTracksInfoRequest: function EditTracksInfoRequest (opt_activeTrackIds, opt_textTrackStyle) {
             this.activeTrackIds = opt_activeTrackIds;
-            this.textTrackSytle = opt_textTrackSytle;
+            this.textTrackStyle = opt_textTrackStyle;
             this.requestId = null;
         }
     }
@@ -730,7 +730,7 @@ chrome.cast.Session.prototype.loadMedia = function (loadRequest, successCallback
     var self = this;
 
     var mediaInfo = loadRequest.media;
-    execute('loadMedia', mediaInfo.contentId, mediaInfo.customData || {}, mediaInfo.contentType, mediaInfo.duration || 0.0, mediaInfo.streamType, loadRequest.autoplay || false, loadRequest.currentTime || 0, mediaInfo.metadata || {}, mediaInfo.textTrackSytle || {}, function (err, obj) {
+    execute('loadMedia', mediaInfo.contentId, mediaInfo.customData || {}, mediaInfo.contentType, mediaInfo.duration || 0.0, mediaInfo.streamType, loadRequest.autoplay || false, loadRequest.currentTime || 0, mediaInfo.metadata || {}, mediaInfo.textTrackStyle || {}, mediaInfo.tracks || [], function (err, obj) {
         if (!err) {
             self._loadNewMedia(obj);
             successCallback(self._getMedia());
@@ -1215,9 +1215,9 @@ chrome.cast.media.Media.prototype.getEstimatedTime = function () {
 chrome.cast.media.Media.prototype.editTracksInfo = function (editTracksInfoRequest, successCallback, errorCallback) {
     if (this._preCheck(errorCallback)) { return; }
     var activeTracks = editTracksInfoRequest.activeTrackIds;
-    var textTrackSytle = editTracksInfoRequest.textTrackSytle;
+    var textTrackStyle = editTracksInfoRequest.textTrackStyle;
 
-    execute('mediaEditTracksInfo', activeTracks, textTrackSytle || {}, function (err) {
+    execute('mediaEditTracksInfo', activeTracks, textTrackStyle || {}, function (err) {
         if (!err) {
             successCallback && successCallback();
         } else {

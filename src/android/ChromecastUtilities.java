@@ -25,6 +25,7 @@ import org.json.JSONObject;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 
 final class ChromecastUtilities {
@@ -844,6 +845,7 @@ final class ChromecastUtilities {
         String streamType = "unknown";
         JSONObject metadata = new JSONObject();
         JSONObject textTrackStyle = new JSONObject();
+        JSONArray tracks = new JSONArray();
 
         // Try to get the actual values
         try {
@@ -874,14 +876,38 @@ final class ChromecastUtilities {
             textTrackStyle = mediaInfo.getJSONObject("textTrackStyle");
         } catch (JSONException e) {
         }
+        try {
+            tracks = mediaInfo.getJSONArray("tracks");
+        } catch (JSONException e) {
+        }
 
-        return createMediaInfo(contentId, customData, contentType, duration, streamType, metadata, textTrackStyle);
+        return createMediaInfo(contentId, customData, contentType, duration, streamType, metadata, textTrackStyle, tracks);
     }
 
-    static MediaInfo createMediaInfo(String contentId, JSONObject customData, String contentType, long duration, String streamType, JSONObject metadata, JSONObject textTrackStyle) {
+    static MediaInfo createMediaInfo(String contentId, JSONObject customData, String contentType, long duration, String streamType, JSONObject metadata, JSONObject textTrackStyle, JSONArray tracks) {
         MediaInfo.Builder mediaInfoBuilder = new MediaInfo.Builder(contentId);
 
         mediaInfoBuilder.setMetadata(createMediaMetadata(metadata));
+
+        // Subtitles
+        final List < MediaTrack > mediaTracks = new ArrayList < MediaTrack > ();
+        for (int i = 0; i < tracks.length(); i++) {
+            try {
+                JSONObject track = tracks.getJSONObject(i);
+                MediaTrack subs = new MediaTrack.Builder((i + 1), MediaTrack.TYPE_TEXT)
+                    .setName(track.getString("name"))
+                    // TODO: Technically this could be MediaTrack.SUBTYPE_CAPTIONS, among others.
+                    .setSubtype(MediaTrack.SUBTYPE_SUBTITLES)
+                    .setContentId(track.getString("trackContentId"))
+                    .setLanguage(track.getString("language"))
+                    .build();
+                mediaTracks.add(subs);
+            } catch (JSONException e) {
+                System.out.println(e.toString());
+            }
+        }
+        mediaInfoBuilder.setMediaTracks(mediaTracks);
+        // End subtitles
 
         int intStreamType;
         switch (streamType) {
