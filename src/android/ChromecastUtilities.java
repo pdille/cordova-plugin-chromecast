@@ -770,7 +770,9 @@ final class ChromecastUtilities {
                 CastDevice device = CastDevice.getFromBundle(route.getExtras());
                 if (device != null) {
                     obj.put("isNearbyDevice", !device.isOnLocalNetwork());
-                    obj.put("isCastGroup", route instanceof MediaRouter.RouteGroup);
+                    // Unavailable since v20+ of play-services-cast-framework
+                    // Seems like we don't make use of it anyway
+                    //obj.put("isCastGroup", route instanceof MediaRouter.RouteGroup);
                 }
 
                 routesArray.put(obj);
